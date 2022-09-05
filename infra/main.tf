@@ -33,12 +33,12 @@ provider "aws" {
 # RDS
 resource "aws_db_instance" "pedidoaberto_writedb" {
   identifier             = "pedidoaberto_writedb"
-  instance_class         = "db.t3.micro"
+  instance_class         = "db.t2.micro"
   allocated_storage      = 5
   engine                 = "postgres"
   engine_version         = "13.1"
   username               = "writedb"
-  password               = aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password
+  password               = data.aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password
   publicly_accessible    = true
   skip_final_snapshot    = true
 }
@@ -50,7 +50,7 @@ resource "aws_secretsmanager_secret" "pedidoaberto_writedb_password_secret" {
 
 resource "aws_secretsmanager_secret_version" "pedidoaberto_writedb_password_secret_version" {
   secret_id     = aws_secretsmanager_secret.pedidoaberto_writedb_password_secret.id
-  secret_string = aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password
+  secret_string = data.aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password
 }
 
 data "aws_secretsmanager_random_password" "pedidoaberto_writedb_password" {
