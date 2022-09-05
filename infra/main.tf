@@ -55,5 +55,5 @@ resource "aws_secretsmanager_secret_version" "pedidoaberto_writedb_password_secr
 
 data "aws_secretsmanager_random_password" "pedidoaberto_writedb_password" {
   password_length = 50
-  exclude_numbers = true
+  exclude_punctuation = true
 }
