@@ -52,3 +52,8 @@ resource "aws_secretsmanager_secret_version" "pedidoaberto_writedb_password_secr
   secret_id     = aws_secretsmanager_secret.pedidoaberto_writedb_password_secret.id
   secret_string = aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password
 }
+
+data "aws_secretsmanager_random_password" "pedidoaberto_writedb_password" {
+  password_length = 50
+  exclude_numbers = true
+}
