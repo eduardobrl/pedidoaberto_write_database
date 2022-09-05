@@ -32,7 +32,7 @@ provider "aws" {
 
 # RDS
 resource "aws_db_instance" "pedidoaberto_writedb" {
-  identifier             = "pedidoaberto_writedb"
+  identifier             = "pedidoaberto-writedb"
   instance_class         = "db.t2.micro"
   allocated_storage      = 5
   engine                 = "postgres"
