@@ -61,6 +61,5 @@ data "aws_secretsmanager_random_password" "pedidoaberto_writedb_password" {
 resource "aws_ssm_parameter" "pedidoaberto_writedb_connectionstring" {
   name  = "pedidoaberto_writedb_connectionstring"
   type  = "SecureString"
-  type  = "String"
   value = "${var.db_engine}://${var.db_username}:${data.aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password}@${aws_db_instance.pedidoaberto_writedb.endpoint}/${var.db_engine}"
 }
