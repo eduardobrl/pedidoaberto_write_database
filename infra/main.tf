@@ -32,12 +32,12 @@ provider "aws" {
 
 # RDS
 resource "aws_db_instance" "pedidoaberto_writedb" {
-  identifier             = "pedidoaberto-writedb"
-  instance_class         = "db.t3.micro"
-  allocated_storage      = 5
-  engine                 = "postgres"
-  engine_version         = "14.4"
-  username               = "writedb"
+  identifier             = "${var.app_name}-${var.microservice_name}"
+  instance_class         = var.db_instancetype
+  allocated_storage      = var.db_allocated_storage
+  engine                 = var.db_engine
+  engine_version         = var.db_engine_version
+  username               = var.db_username
   password               = data.aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password
   publicly_accessible    = true
   skip_final_snapshot    = true
@@ -58,8 +58,9 @@ data "aws_secretsmanager_random_password" "pedidoaberto_writedb_password" {
   exclude_punctuation = true
 }
 
-resource "aws_ssm_parameter" "pedidoaberto_writedb_endpoint" {
-  name  = "pedidoaberto_writedb_endpoint"
+resource "aws_ssm_parameter" "pedidoaberto_writedb_connectionstring" {
+  name  = "pedidoaberto_writedb_connectionstring"
+  type  = "SecureString"
   type  = "String"
-  value = aws_db_instance.pedidoaberto_writedb.endpoint
+  value = "${var.db_engine}://${var.db_username}:${data.aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password}@${aws_db_instance.pedidoaberto_writedb.endpoint}/${var.db_engine}"
 }
