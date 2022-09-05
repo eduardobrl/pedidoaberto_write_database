@@ -7,38 +7,13 @@ on:
   #pull_request:
 
 jobs:
-  build:
-    name: Build App
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      
-      - run: cd app/src && yarn install
-
-      - run: cd app/src && yarn build
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: lambda
-          path: app/src/dist/index.zip
-
-
   terraform:
     name: "Terraform"
-    needs: build
     runs-on: ubuntu-latest
     steps:
 
       - name: Checkout
         uses: actions/checkout@v2
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: lambda
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -54,9 +29,6 @@ jobs:
         id: init
         working-directory: infra
         run: terraform init
-
-      - name: Move app source code
-        run: mv index.zip infra/app.zip
 
       - name: Terraform Validate
         id: validate
