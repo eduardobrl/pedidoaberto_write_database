@@ -1,0 +1,108 @@
+name: "Terraform"
+
+on:
+  push:
+    branches:
+      - "master"
+  #pull_request:
+
+jobs:
+  build:
+    name: Build App
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      
+      - run: cd app/src && yarn install
+
+      - run: cd app/src && yarn build
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: lambda
+          path: app/src/dist/index.zip
+
+
+  terraform:
+    name: "Terraform"
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: lambda
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Format
+        id: fmt
+        working-directory: infra
+        run: terraform fmt
+
+      - name: Terraform Init
+        id: init
+        working-directory: infra
+        run: terraform init
+
+      - name: Move app source code
+        run: mv index.zip infra/app.zip
+
+      - name: Terraform Validate
+        id: validate
+        working-directory: infra
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color
+        working-directory: infra
+        continue-on-error: true
+
+      - uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+      - name: Terraform Plan Status
+        working-directory: infra
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Rename environment TF VARS
+        working-directory: infra
+        run: mv environments/dev.tfvars dev.auto.tfvars
+
+      - name: Terraform Apply
+        working-directory: infra
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: terraform apply -auto-approve
