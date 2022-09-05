@@ -57,3 +57,9 @@ data "aws_secretsmanager_random_password" "pedidoaberto_writedb_password" {
   password_length = 50
   exclude_punctuation = true
 }
+
+resource "aws_ssm_parameter" "pedidoaberto_writedb_endpoint" {
+  name  = "pedidoaberto_writedb_endpoint"
+  type  = "String"
+  value = aws_db_instance.pedidoaberto_writedb.endpoint
+}
