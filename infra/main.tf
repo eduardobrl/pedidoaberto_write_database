@@ -36,7 +36,7 @@ resource "aws_db_instance" "pedidoaberto_writedb" {
   instance_class         = "db.t2.micro"
   allocated_storage      = 5
   engine                 = "postgres"
-  engine_version         = "13.1"
+  engine_version         = "14.5"
   username               = "writedb"
   password               = data.aws_secretsmanager_random_password.pedidoaberto_writedb_password.random_password
   publicly_accessible    = true
